@@ -7,7 +7,7 @@ export default function Chats() {
   const getChats = async () => {
     try {
       const response = await axios.get('/api/chat');
-      console.log(response)
+      console.log(response.data)
       setChats(response.data);
     } catch (error) {
       console.error(error);
@@ -21,7 +21,7 @@ export default function Chats() {
   return (
     <div>
       {chats.map((chat) => (
-        <div key={chat.id}>{chat.message}</div>
+        <div key={chat._id}>{chat.message}</div>
       ))}
     </div>
   );

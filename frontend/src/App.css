@@ -43,6 +43,7 @@ html {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    font-size: 16px;
 
 
 
@@ -92,7 +93,7 @@ html {
 }
 
 .signup-title {
-    padding: 50px 0px;
+    padding-top: 50px;
 }
 
 
@@ -298,3 +299,24 @@ form {
     text-decoration: none;
     transition: color 0.2s;
 }
+
+.password-input-container {
+    position: relative;
+  }
+  
+  .input-wrapper {
+    display: flex;
+  }
+  
+  .password-input {
+    flex: 1;
+  }
+  
+  .eye-btn {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin-left: -30px;
+    cursor: pointer;
+  }
+

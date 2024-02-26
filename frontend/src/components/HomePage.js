@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import vectorLogo from "../images/vector-logo.png";
+import { Toast } from 'bootstrap';
+
 // Log in and sign up here
 export default function HomePage() {
   const [isLoginForm, setIsLoginForm] = useState(true);
@@ -7,10 +9,12 @@ export default function HomePage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmpassword, setConfirmPassword] = useState("");
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [picture, setPicture] = useState("");
-
+  const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
+
+
 
   const closedEye = "https://img.icons8.com/ios/50/closed-eye.png";
   const openEye = "https://img.icons8.com/ios/50/visible--v1.png";
@@ -19,23 +23,101 @@ export default function HomePage() {
     setIsLoginForm(!isLoginForm);
   };
 
+// Select the toast container element
+const toastContainer = document.getElementById('toastContainer');
+
+// Function to create and show a toast
+function showToast(message, type) {
+  // Create the toast element
+  const toast = document.createElement('div');
+  toast.classList.add('toast');
+  toast.classList.add(`bg-${type}`);
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
+  toast.setAttribute('aria-atomic', 'true');
+
+  // Create the toast body
+  const toastBody = document.createElement('div');
+  toastBody.classList.add('toast-body');
+  toastBody.textContent = message;
+
+  // Append the body to the toast
+  toast.appendChild(toastBody);
+
+  // Append the toast to the container
+  toastContainer.appendChild(toast);
+
+  // Initialize the Bootstrap toast
+  const bootstrapToast = new Toast(toast)
+
+  // Show the toast
+  bootstrapToast.show();
+
+  // Remove the toast after it is hidden
+  toast.addEventListener('hidden.bs.toast', function () {
+    toast.remove();
+  });
+}
+
+
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
-    console.log(isPasswordVisible);
   };
 
-  const postDetails = (pics) => {};
+  const postDetails = (pics) => {
+    setLoading(true)
+    if (pics === undefined) {
+      showToast('Oops! Something went wrong.', 'danger');
+
+        return
+    }
+    
+    if (pics.type === 'image/jpeg' || pics.type === 'image/png') {
+      // Adding to cloudinary
+      const formData = new FormData();
+      formData.append('file', pics);
+      formData.append('upload_preset', 'vector-chat-app');
+      formData.append('cloud_name', 'zeem');
+    
+      // Make a request to the Cloudinary upload API
+      fetch('https://api.cloudinary.com/v1_1/zeem/image/upload', {
+        method: 'POST',
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setPicture(data.url.toString());
+          console.log(data.url.toString());
+          setLoading(false);
+          showToast('Image uploaded successfully!', 'success');
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoading(false);
+        });
+      
+  } else {
+    console.log('not an image bro')
+    setLoading(false)
+    showToast('Oops! Something went wrong.', 'danger');
+    return
+  }}
 
   const submitHandler = () => {}
 
   useEffect(() => {
-    togglePasswordVisibility();
   }, []);
 
 
   return (
     <div class="container-xl">
       <div class="homepage-form wrapper">
+
+
+      {/* TOASTTTT */}
+
+      <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
         {/* Login form */}
         <form
           id="login-side"
@@ -57,9 +139,6 @@ export default function HomePage() {
               onChange={(e) => setEmail(e.target.value)}
               // required="true"
             />
-            <div id="emailHelp" class="form-text">
-              We'll never share your email with anyone else.
-            </div>
           </div>
           <div class="mb-3 password-input-container">
             <label for="exampleInputPassword1" class="form-label">
@@ -94,6 +173,8 @@ export default function HomePage() {
             </span>
           </button>
           <br />
+
+          
 
           <svg class="svg-btn" xmlns="http://www.w3.org/2000/svg" version="1.1">
             <defs>
@@ -154,7 +235,7 @@ export default function HomePage() {
               Name
             </label>
             <input
-              type="email"
+              type="text"
               class="form-control"
               id="exampleInputEmail1"
               aria-describedby="emailHelp"
@@ -229,7 +310,7 @@ export default function HomePage() {
               I agree to the <u>terms & policy</u>
             </label>
           </div>
-          <button class="btn blob-btn" onClick={submitHandler}>
+          <button class="btn blob-btn" onClick={submitHandler} isLoading = {loading}>
             Sign Up
             <span class="blob-btn__inner">
               <span class="blob-btn__blobs">

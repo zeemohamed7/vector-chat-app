@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import vectorLogo from "../images/vector-logo.png";
-import { Toast } from 'bootstrap';
+import { Toast } from "bootstrap";
+import axios from "axios";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 // Log in and sign up here
 export default function HomePage() {
@@ -11,10 +13,10 @@ export default function HomePage() {
   const [confirmpassword, setConfirmPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [picture, setPicture] = useState("");
-  const [loading, setLoading] = useState(false)
-  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
 
-
+  const history = useHistory()
 
   const closedEye = "https://img.icons8.com/ios/50/closed-eye.png";
   const openEye = "https://img.icons8.com/ios/50/visible--v1.png";
@@ -23,65 +25,64 @@ export default function HomePage() {
     setIsLoginForm(!isLoginForm);
   };
 
-// Select the toast container element
-const toastContainer = document.getElementById('toastContainer');
+  // Select the toast container element
+  const toastContainer = document.getElementById("toastContainer");
 
-// Function to create and show a toast
-function showToast(message, type) {
-  // Create the toast element
-  const toast = document.createElement('div');
-  toast.classList.add('toast');
-  toast.classList.add(`bg-${type}`);
-  toast.setAttribute('role', 'alert');
-  toast.setAttribute('aria-live', 'assertive');
-  toast.setAttribute('aria-atomic', 'true');
+  // Function to create and show a toast
+  function showToast(message, type) {
+    // Create the toast element
+    const toast = document.createElement("div");
+    toast.classList.add("toast");
+    toast.classList.add(`bg-${type}`);
+    toast.setAttribute("role", "alert");
+    toast.setAttribute("aria-live", "assertive");
+    toast.setAttribute("aria-atomic", "true");
 
-  // Create the toast body
-  const toastBody = document.createElement('div');
-  toastBody.classList.add('toast-body');
-  toastBody.textContent = message;
+    // Create the toast body
+    const toastBody = document.createElement("div");
+    toastBody.classList.add("toast-body");
+    toastBody.textContent = message;
 
-  // Append the body to the toast
-  toast.appendChild(toastBody);
+    // Append the body to the toast
+    toast.appendChild(toastBody);
 
-  // Append the toast to the container
-  toastContainer.appendChild(toast);
+    // Append the toast to the container
+    toastContainer.appendChild(toast);
 
-  // Initialize the Bootstrap toast
-  const bootstrapToast = new Toast(toast)
+    // Initialize the Bootstrap toast
+    const bootstrapToast = new Toast(toast);
 
-  // Show the toast
-  bootstrapToast.show();
+    // Show the toast
+    bootstrapToast.show();
 
-  // Remove the toast after it is hidden
-  toast.addEventListener('hidden.bs.toast', function () {
-    toast.remove();
-  });
-}
-
+    // Remove the toast after it is hidden
+    toast.addEventListener("hidden.bs.toast", function () {
+      toast.remove();
+    });
+  }
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
   const postDetails = (pics) => {
-    setLoading(true)
+    setLoading(true);
     if (pics === undefined) {
-      showToast('Oops! Something went wrong.', 'danger');
+      showToast("Oops! Something went wrong.", "danger");
 
-        return
+      return;
     }
-    
-    if (pics.type === 'image/jpeg' || pics.type === 'image/png') {
+
+    if (pics.type === "image/jpeg" || pics.type === "image/png") {
       // Adding to cloudinary
       const formData = new FormData();
-      formData.append('file', pics);
-      formData.append('upload_preset', 'vector-chat-app');
-      formData.append('cloud_name', 'zeem');
-    
+      formData.append("file", pics);
+      formData.append("upload_preset", "vector-chat-app");
+      formData.append("cloud_name", "zeem");
+
       // Make a request to the Cloudinary upload API
-      fetch('https://api.cloudinary.com/v1_1/zeem/image/upload', {
-        method: 'POST',
+      fetch("https://api.cloudinary.com/v1_1/zeem/image/upload", {
+        method: "POST",
         body: formData,
       })
         .then((response) => response.json())
@@ -89,34 +90,72 @@ function showToast(message, type) {
           setPicture(data.url.toString());
           console.log(data.url.toString());
           setLoading(false);
-          showToast('Image uploaded successfully!', 'success');
+          showToast("Image uploaded successfully!", "success");
         })
         .catch((error) => {
           console.log(error);
           setLoading(false);
         });
-      
-  } else {
-    console.log('not an image bro')
-    setLoading(false)
-    showToast('Oops! Something went wrong.', 'danger');
-    return
-  }}
+    } else {
+      setLoading(false);
+      showToast("Please select an image!", "danger");
+      return;
+    }
+  };
 
-  const submitHandler = () => {}
+  const submitHandler = async () => {
 
-  useEffect(() => {
-  }, []);
+    setLoading(true);
+    if (!name || !email || !password || !confirmpassword) {
+      showToast("Please fill all fields", "danger");
+      setLoading(false);
+      return;
+    }
 
+    if (password !== confirmpassword) {
+      showToast("Passwords do not match", "danger");
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+
+      const { data } = await axios.post(
+        "/api/user",
+        { name, email, password, picture },
+        config
+      );
+
+      console.log(data)
+
+      showToast("User created successfully", "success");
+      localStorage.setItem('user', JSON.stringify(data))
+      setLoading(false)
+      history.pushState('/chats')
+
+    } catch (err) {
+
+      showToast("Error occured! " + err.response.data.message , "danger");
+      setLoading(false)
+
+    }
+  };
+
+  useEffect(() => {}, []);
 
   return (
     <div class="container-xl">
       <div class="homepage-form wrapper">
+        {/* TOASTTTT */}
 
-
-      {/* TOASTTTT */}
-
-      <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+        <div
+          id="toastContainer"
+          class="toast-container position-fixed bottom-0 end-0 p-3"
+        ></div>
 
         {/* Login form */}
         <form
@@ -145,20 +184,20 @@ function showToast(message, type) {
               Password
             </label>
             <div class="password-eye input-wrapper">
-            <input
-              type={isPasswordVisible ? "password" : "text"}
-              class="form-control password-input"
-              id="exampleInputPassword1"
-              onChange={(e) => setPassword(e.target.value)}
-            />{" "}
-       <button className="eye-btn" onClick={togglePasswordVisibility}>
-        <img
-          width="25"
-          src={isPasswordVisible ? openEye : closedEye}
-          alt={isPasswordVisible ? 'Open Eye' : 'Closed Eye'}
-        />
-      </button>
-          </div>
+              <input
+                type={isPasswordVisible ? "password" : "text"}
+                class="form-control password-input"
+                id="exampleInputPassword1"
+                onChange={(e) => setPassword(e.target.value)}
+              />{" "}
+              <button className="eye-btn" onClick={togglePasswordVisibility}>
+                <img
+                  width="25"
+                  src={isPasswordVisible ? openEye : closedEye}
+                  alt={isPasswordVisible ? "Open Eye" : "Closed Eye"}
+                />
+              </button>
+            </div>
           </div>
 
           <button class="btn blob-btn">
@@ -173,8 +212,6 @@ function showToast(message, type) {
             </span>
           </button>
           <br />
-
-          
 
           <svg class="svg-btn" xmlns="http://www.w3.org/2000/svg" version="1.1">
             <defs>
@@ -210,17 +247,6 @@ function showToast(message, type) {
           </p>
         </form>
 
-
-
-
-
-
-
-
-
-
-
-
         {/* Sign up form */}
         <form
           id="signup-side"
@@ -240,7 +266,6 @@ function showToast(message, type) {
               id="exampleInputEmail1"
               aria-describedby="emailHelp"
               onChange={(e) => setName(e.target.value)}
-
             />
           </div>
           <div class="mb-3">
@@ -252,6 +277,8 @@ function showToast(message, type) {
               class="form-control"
               id="exampleInputEmail1"
               aria-describedby="emailHelp"
+              onChange={(e) => setEmail(e.target.value)}
+              // required="true"
             />
           </div>
           <div class="mb-3 password-input-container">
@@ -259,34 +286,33 @@ function showToast(message, type) {
               Password
             </label>
             <div class="password-eye input-wrapper">
-            <input
-              type={isPasswordVisible ? "password" : "text"}
-              class="form-control password-input"
-              id="exampleInputPassword1"
-              onChange={(e) => setPassword(e.target.value)}
-            />{" "}
-       <button className="eye-btn" onClick={togglePasswordVisibility}>
-        <img
-          width="25"
-          src={isPasswordVisible ? openEye : closedEye}
-          alt={isPasswordVisible ? 'Open Eye' : 'Closed Eye'}
-        />
-      </button>
-          </div>
+              <input
+                type={isPasswordVisible ? "password" : "text"}
+                class="form-control password-input"
+                id="exampleInputPassword1"
+                onChange={(e) => setPassword(e.target.value)}
+              />{" "}
+              <button className="eye-btn" onClick={togglePasswordVisibility}>
+                <img
+                  width="25"
+                  src={isPasswordVisible ? openEye : closedEye}
+                  alt={isPasswordVisible ? "Open Eye" : "Closed Eye"}
+                />
+              </button>
+            </div>
           </div>
           <div class="mb-3 password-input-container">
             <label for="exampleInputPassword1" class="form-label">
               Confirm Password
             </label>
             <div class="password-eye input-wrapper">
-            <input
-              type={isPasswordVisible ? "password" : "text"}
-              class="form-control password-input"
-              id="exampleInputPassword1"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />{" "}
-
-          </div>
+              <input
+                type={isPasswordVisible ? "password" : "text"}
+                class="form-control password-input"
+                id="exampleInputPassword1"
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />{" "}
+            </div>
           </div>
           <div class="mb-3">
             <label for="exampleInputPassword1" class="form-label">
@@ -310,7 +336,11 @@ function showToast(message, type) {
               I agree to the <u>terms & policy</u>
             </label>
           </div>
-          <button class="btn blob-btn" onClick={submitHandler} isLoading = {loading}>
+          <button
+            class="btn blob-btn"
+            onClick={submitHandler}
+            isLoading={loading}
+          >
             Sign Up
             <span class="blob-btn__inner">
               <span class="blob-btn__blobs">

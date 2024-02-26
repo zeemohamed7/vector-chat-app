@@ -4,16 +4,24 @@ const dotenv = require('dotenv');
 const colors = require('colors')
 const userRoutes = require('./routes/userRoutes')
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
+const bodyParser = require('body-parser')
 
 
 const connectDB = require('./config/db')
 
-const app = express();
-dotenv.config();
-connectDB()
+
+
 
 // Telling backend to accept JSON data from frontend
-app.use(express.json())
+
+dotenv.config();
+connectDB();
+const app = express();
+
+app.use(express.json()); // to accept json data
+app.use('/', userRoutes)
+
+
 
 // Error handlers
 app.use(notFound);
@@ -27,5 +35,4 @@ app.get('/', (req, res) => {
 });
 
 
-app.use('/api/user', userRoutes)
 

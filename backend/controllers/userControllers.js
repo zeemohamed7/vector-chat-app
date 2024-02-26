@@ -4,12 +4,13 @@ const asyncHandler = require('express-async-handler')
 const User = require("../models/userModel");
 const generateToken = require('../config/auth')
 
-const app = express()
 
 // Register user
-const registerUser =asyncHandler( async(req, res) => {
-    const { name, email, password, profilePicture } = req.body
+const registerUser = asyncHandler( async(req, res) => {
 
+    const { name, email, password, picture } = req.body
+
+    console.log("this is name:" + name)
 
     const userExists = await User.findOne({ email });
 
@@ -22,7 +23,7 @@ const registerUser =asyncHandler( async(req, res) => {
         name,
         email,
         password,
-        profilePicture,
+        picture,
       });
 
       if (user) {
@@ -30,9 +31,11 @@ const registerUser =asyncHandler( async(req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
-          profilePicture: user.pic,
+          picture: user.pic,
           token: generateToken(user._id),
         });
+
+        user.save()
       } else {
         res.status(400);
         throw new Error("Failed to create user");
@@ -52,7 +55,7 @@ const authUser = asyncHandler(async(req,res) => {
 {            _id: user._id,
             name: user.name,
             email: user.email,
-            profilePicture: user.pic,
+            picture: user.pic,
             token: generateToken(user._id)}
         )
     } else {

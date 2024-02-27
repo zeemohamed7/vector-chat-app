@@ -104,46 +104,48 @@ export default function HomePage() {
   };
 
   const submitHandler = async () => {
-
     setLoading(true);
+  
     if (!name || !email || !password || !confirmpassword) {
       showToast("Please fill all fields", "danger");
       setLoading(false);
       return;
     }
-
+  
     if (password !== confirmpassword) {
       showToast("Passwords do not match", "danger");
+      setLoading(false);
       return;
     }
-
+  
     try {
       const config = {
         headers: {
           "Content-type": "application/json",
         },
       };
-
+  
       const { data } = await axios.post(
-        "/api/user",
+        "/register",
         { name, email, password, picture },
         config
       );
-
-      console.log(data)
-
+  
       showToast("User created successfully", "success");
-      localStorage.setItem('user', JSON.stringify(data))
-      setLoading(false)
-      history.pushState('/chats')
+      localStorage.setItem('user', JSON.stringify(data));
+      setLoading(false);
+      // history.pushState('/chats')
 
     } catch (err) {
-
-      showToast("Error occured! " + err.response.data.message , "danger");
-      setLoading(false)
-
+      if (err.response && err.response.data && err.response.data.message) {
+        showToast("Error occurred! " + err.response.data.message, "danger");
+      } else {
+        showToast("Error occurred!", "danger");
+      }
+      setLoading(false);
     }
   };
+  
 
   useEffect(() => {}, []);
 

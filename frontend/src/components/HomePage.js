@@ -103,7 +103,7 @@ export default function HomePage() {
     }
   };
 
-  const submitHandler = async () => {
+  const submitSignupHandler = async () => {
     setLoading(true);
   
     if (!name || !email || !password || !confirmpassword) {
@@ -146,6 +146,44 @@ export default function HomePage() {
     }
   };
   
+  const submitLoginHandler = async() => {
+    setLoading(true);
+  
+    if (!email || !password ) {
+      showToast("Please fill all fields", "danger");
+      setLoading(false);
+      return;
+    }
+  
+  
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+  
+      const { data } = await axios.post(
+        "/login",
+        { email, password },
+        config
+      );
+
+  
+      showToast("Logged in successfully", "success");
+      localStorage.setItem('user', JSON.stringify(data));
+      setLoading(false);
+      // history.pushState('/chats')
+
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        showToast("Error occurred! " + err.response.data.message, "danger");
+      } else {
+        showToast("Error occurred!", "danger");
+      }
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {}, []);
 
@@ -202,7 +240,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          <button class="btn blob-btn">
+          <button
+            class="btn blob-btn"
+            onClick={submitLoginHandler}
+            isLoading={loading}
+          >
             Login
             <span class="blob-btn__inner">
               <span class="blob-btn__blobs">
@@ -248,6 +290,9 @@ export default function HomePage() {
             </a>
           </p>
         </form>
+
+
+
 
         {/* Sign up form */}
         <form
@@ -340,7 +385,7 @@ export default function HomePage() {
           </div>
           <button
             class="btn blob-btn"
-            onClick={submitHandler}
+            onClick={submitSignupHandler}
             isLoading={loading}
           >
             Sign Up

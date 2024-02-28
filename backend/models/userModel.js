@@ -9,28 +9,28 @@ const userSchema = mongoose.Schema(
     picture: {
       type: String,
       default:
-        "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+        "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
     },
   },
   { timestamps: true }
 );
 
 
-// Match password functionality 
-userSchema.methods.matchPassword = async function (password) {
-  return await bcrypt.compare(password, this.password)
-}
-// Before saving, ..encrypt password
-userSchema.pre('save', async function (next) {
-  // If password is not modified, next()
-  if (!this.isModified) {
-    next()
-  } 
-  // Generate a new salt
-  const salt = await bcrypt.genSalt(10)
-  // Hash password with the salt
-  this.password = await bcrypt.hash(this.password, salt)
-})
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  const isMatch = await bcrypt.compare(enteredPassword, this.password);
+  return isMatch;
+};
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified()) {
+    next();
+    return;
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

@@ -3,6 +3,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const colors = require('colors')
 const userRoutes = require('./routes/userRoutes')
+const chatsRoutes = require('./routes/chatsRoutes')
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const bodyParser = require('body-parser')
 
@@ -20,6 +21,7 @@ const app = express();
 
 app.use(express.json()); // to accept json data
 app.use('/', userRoutes)
+app.use('/', chatsRoutes)
 
 
 

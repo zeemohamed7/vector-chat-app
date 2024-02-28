@@ -48,19 +48,40 @@ const authUser = asyncHandler(async (req, res) => {
   console.log(user);
   // Check if matching password
   if (user && (await user.matchPassword(password))) {
+    const isMatch = true; // Password matched
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       picture: user.pic,
       token: generateToken(user._id),
+      isMatch: isMatch, // Send the value of isMatch to the response
     });
   } else {
+    const isMatch = false; // Password did not match
     res.status(401);
     res.json({
       error: "Invalid Email or Password",
+      isMatch: isMatch, // Send the value of isMatch to the response
     });
   }
 });
 
-module.exports = { registerUser, authUser };
+const allUsers = asyncHandler(async (req, res) => {
+  const keyword = req.query.search
+
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+    const users = await User.find(keyword).find({_id:{$ne: req.user_id}} ) // Except current user, return all user that are part of search result defined in keyword
+
+    res.send(users)
+});
+
+
+module.exports = { registerUser, authUser, allUsers };

@@ -7,7 +7,7 @@ const chatModel = mongoose.Schema(
     users: [
       { 
         type: mongoose.Schema.Types.ObjectId, // refer to db with id
-        ref: "Users" //refer to user model
+        ref: "User" //refer to user model
       }
     ],
     latestMessage: {

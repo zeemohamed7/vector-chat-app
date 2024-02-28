@@ -62,6 +62,8 @@ const accessChat = asyncHandler(async (req, res) => {
         }
 })
 
+
+
 const fetchChats = asyncHandler(async (req, res) => {
     try {
         // Look through all chats that contains user that is logged in
@@ -73,7 +75,7 @@ const fetchChats = asyncHandler(async (req, res) => {
         .then(async (results) => {
           results = await User.populate(results, {
             path: "latestMessage.sender",
-            select: "name pic email",
+            select: "name picture email",
           });
           res.status(200).send(results);
         });
@@ -83,4 +85,41 @@ const fetchChats = asyncHandler(async (req, res) => {
     }
   });
 
-module.exports = {accessChat, fetchChats}
+
+
+
+const createGroup = asyncHandler(async (req, res) => {
+    if (!req.body.users || !req.body.name) {
+        return res.status(400).send({ message: "Please fill all the fields!" });
+      }
+    
+      // Send users for users to choose to add
+      let users = JSON.parse(req.body.users);
+    
+      if (users.length < 2) {
+        return res
+          .status(400)
+          .send("Select more users to create a group chat!");
+      }
+    
+      users.push(req.user);  // Add logged in user too
+    
+      try {
+        const groupChat = await Chat.create({
+          chatName: req.body.name,
+          users: users,
+          isGroupChat: true,
+          groupAdmin: req.user,
+        });
+    
+        const fullGroupChat = await Chat.findOne({ _id: groupChat._id })
+          .populate("users", "-password")
+          .populate("groupAdmin", "-password");
+    
+        res.status(200).json(fullGroupChat);
+      } catch (error) {
+        res.status(400);
+        throw new Error(error.message);
+      }
+})
+module.exports = {accessChat, fetchChats, createGroup}

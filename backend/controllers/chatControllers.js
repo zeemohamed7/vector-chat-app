@@ -20,14 +20,18 @@ const accessChat = asyncHandler(async (req, res) => {
 
 // If chat exists with this user id, return chat
   // Find chat with:
-  const chat = await Chat.findOne({
-    isGroupChat: false, // Should not be a group chat
+    let chat = await Chat.findOne({
+    isGroup: false, // Should not be a group chat
     users: { $all: [req.user._id, userId] }, // Both users must be present in the chat
-  })
-    .populate('users', '-password')
-    .populate('latestMessage.sender');
-
+  });
+  console.log(chat)
+  chat = await User.populate(chat, {
+    path: "latestMessage.sender",
+    select: "name picture email",
+  });
+  
   if (chat) {
+    console.log("CHAT ALREADY EXISTS")
     // Chat already exists, send the chat
     res.json(chat);
   } else {
@@ -58,4 +62,25 @@ const accessChat = asyncHandler(async (req, res) => {
         }
 })
 
-module.exports = {accessChat}
+const fetchChats = asyncHandler(async (req, res) => {
+    try {
+        // Look through all chats that contains user that is logged in
+      Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password")
+        .populate("latestMessage")
+        .sort({ updatedAt: -1 })
+        .then(async (results) => {
+          results = await User.populate(results, {
+            path: "latestMessage.sender",
+            select: "name pic email",
+          });
+          res.status(200).send(results);
+        });
+    } catch (error) {
+      res.status(400);
+      throw new Error(error.message);
+    }
+  });
+
+module.exports = {accessChat, fetchChats}
